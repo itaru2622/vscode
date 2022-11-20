@@ -1,3 +1,5 @@
+#cf. https://github.com/cmiles74/docker-vscode/blob/master/Dockerfile
+
 From debian:bullseye
 
 RUN apt update
@@ -17,6 +19,7 @@ RUN mkdir -p ${workdir} ; \
     echo "${uname}:${uname}" | chpasswd; \
     (cd /etc/skel; find . -type f -print | tar cf - -T - | tar xvf - -C/home/${uname} ) ; \
     echo "${uname} ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/local-user; \
+    mkdir -p /home/${uname}/.ssh \
     chown -R ${uname} /home/${uname} ${workdir}; \
     echo "ja_JP.UTF-8 UTF-8" > /etc/locale.gen; locale-gen; update-locale LANG=ja_JP.UTF-8 LANGUAGE="ja_JP:ja"
 
@@ -25,6 +28,11 @@ RUN mkdir -p ${workdir} ; \
 RUN pip3 install spacy pandas flask fastapi uvicorn[standard] q; \
     python3 -m spacy download    en_core_web_lg;
 
+# install heideltime, resolving MM-DD to YYYY-MM-DD
+RUN apt install -y openjdk-11-jre ; \
+    pip3 install git+https://github.com/JMendes1995/py_heideltime.git; \
+    chmod a+rx /usr/local/lib/python3.9/dist-packages/py_heideltime/Heideltime/TreeTaggerLinux/bin/*
+
 
 USER ${uname}
 
@@ -32,7 +40,7 @@ USER ${uname}
 RUN code --install-extension  ms-python.python; \
     code --install-extension  MS-CEINTL.vscode-language-pack-ja
 
-VOLUME  ${workdir}
+VOLUME  ${workdir} /home/{uname}/.ssh /home/{uname}/.vscode
 WORKDIR ${workdir}
 
 CMD code

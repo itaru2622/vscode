@@ -8,7 +8,7 @@ RUN curl https://packages.microsoft.com/keys/microsoft.asc | apt-key add - ;\
     echo "deb [arch=amd64] https://packages.microsoft.com/repos/vscode stable main" > /etc/apt/sources.list.d/vscode.list;
 RUN apt update
 RUN apt install -y code git make python3 python3-pip bash-completion jq \
-                   task-japanese locales-all locales ibus-mozc sudo
+                   task-japanese locales-all locales ibus-mozc sudo dante-client connect-proxy azure-cli
 
 ARG uid=1000
 ARG uname=vscode
@@ -19,7 +19,7 @@ RUN mkdir -p ${workdir} ; \
     echo "${uname}:${uname}" | chpasswd; \
     (cd /etc/skel; find . -type f -print | tar cf - -T - | tar xvf - -C/home/${uname} ) ; \
     echo "${uname} ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/local-user; \
-    mkdir -p /home/${uname}/.ssh \
+    mkdir -p /home/${uname}/.ssh ;\
     chown -R ${uname} /home/${uname} ${workdir}; \
     echo "ja_JP.UTF-8 UTF-8" > /etc/locale.gen; locale-gen; update-locale LANG=ja_JP.UTF-8 LANGUAGE="ja_JP:ja"
 
@@ -38,9 +38,11 @@ USER ${uname}
 
 # install vscode plugin...
 RUN code --install-extension  ms-python.python; \
-    code --install-extension  MS-CEINTL.vscode-language-pack-ja
+    code --install-extension  MS-CEINTL.vscode-language-pack-ja; \
+    code --install-extension  ms-vscode-remote.vscode-remote-extensionpack; \
+    code --install-extension  ms-vscode.azurecli;
 
 VOLUME  ${workdir} /home/{uname}/.ssh /home/{uname}/.vscode
 WORKDIR ${workdir}
 
-CMD code
+#CMD code
